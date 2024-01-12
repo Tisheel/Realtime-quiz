@@ -4,7 +4,7 @@ import { createServer } from 'http'
 import { v4 as uuidv4 } from 'uuid'
 import url from 'url'
 import { createClient } from 'redis'
-import { broadcast, createRoom, getRoomMembers, joinRoom, leaveRoom } from './Room.js'
+import { broadcast, createRoom, getRoom, getRoomMembers, joinRoom, leaveRoom } from './Room.js'
 
 // Globals
 const PORT = 3001
@@ -32,11 +32,11 @@ app.post('/test', async (req, res) => {
         for (let question of questions) {
             question.id = uuidv4()
         }
-        console.log({ id, title, questions })
         const test = await client.set(`Test:${id}`, JSON.stringify({ id, title, questions }))
         if (test) {
             return res.status(200).json({
-                message: 'ok'
+                message: 'ok',
+                test: { id, title, questions }
             })
         }
         res.status(400).json({
@@ -62,9 +62,9 @@ wss.on('connection', (socket, req) => {
                 const req = JSON.parse(data.toString());
                 (async () => {
                     switch (req.event) {
-                        case 'START':
+                        case 'CREATE_ROOM':
                             {
-                                const { id, questions } = JSON.parse(await client.get(`Test:${req.presentationId}`))
+                                const { id, questions } = JSON.parse(await client.get(`Test:${req.testId}`))
                                 const ppt = {
                                     id,
                                     questions,
@@ -75,23 +75,26 @@ wss.on('connection', (socket, req) => {
                                 }
                                 await client.set(`Presentation:${id}`, JSON.stringify(ppt))
                                 createRoom(socket)
-                                const res = {
-                                    state: ppt.state[ppt.currentState]
-                                }
-                                broadcast(socket, JSON.stringify(res))
-                                break
                             }
+                            break
 
                         case 'NEXT':
                             {
-                                const { questions, currentQuestion, state, currentState, leaderboard } = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
+                                let { id, questions, currentQuestion, state, currentState, leaderboard } = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
                                 currentState = (currentState + 1) % 4
                                 switch (state[currentState]) {
+                                    case 'NOT_STARTED':
+                                        {
+                                            const members = getRoomMembers(socket.roomId)
+                                            broadcast(socket, JSON.stringify(members))
+                                        }
+                                        break
                                     case 'QUESTION':
                                         {
                                             currentQuestion++
                                             if (currentQuestion < questions.length) {
                                                 const res = {
+                                                    id,
                                                     state: state[currentState],
                                                     question: questions[currentQuestion]
                                                 }
@@ -102,13 +105,34 @@ wss.on('connection', (socket, req) => {
                                                 }
                                                 broadcast(socket, JSON.stringify(res))
                                             }
-                                            break
                                         }
-
+                                        break
+                                    case 'RESULT':
+                                        {
+                                            let { questions, currentQuestion } = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
+                                            const res = {
+                                                options: [],
+                                                answer: questions[currentQuestion].answer
+                                            }
+                                            const members = getRoom(socket.roomId).size
+                                            for (let option of questions[currentQuestion].options) {
+                                                res.options.push((option.submissions.length) / members)
+                                            }
+                                            broadcast(socket, JSON.stringify(res))
+                                        }
+                                        break
+                                    case 'LEADERBOARD':
+                                        {
+                                            let { leaderboard } = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
+                                            broadcast(socket, JSON.stringify(leaderboard))
+                                        }
+                                        break
                                     default:
                                         break
                                 }
+                                await client.set(`Presentation:${req.presentationId}`, JSON.stringify({ id, questions, currentQuestion, state, currentState, leaderboard }))
                             }
+                            break
 
                         default:
                             break
@@ -123,11 +147,28 @@ wss.on('connection', (socket, req) => {
                 (async () => {
                     switch (req.event) {
                         case 'JOIN':
-                            const { name, profile } = req.data
-                            socket.user = { name, profile }
-                            joinRoom(req.roomId, socket)
+                            {
+                                const { name, profile } = req.data
+                                socket.user = { name, profile, score: 0 }
+                                joinRoom(req.roomId, socket)
+                            }
                             break
-
+                        case 'SUBMIT':
+                            {
+                                let ppt = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
+                                for (let question of ppt.questions) {
+                                    if (question.id === req.questionId) {
+                                        question.options[req.answerIndex].submissions.push({ id: socket.id, ...socket.user })
+                                        if (question.answer === req.answerIndex) {
+                                            socket.user.score += 100
+                                            ppt.leaderboard.push(socket.user)
+                                        }
+                                    }
+                                }
+                                console.log(ppt)
+                                await client.set(`Presentation:${req.presentationId}`, JSON.stringify(ppt))
+                            }
+                            break
                         default:
                             break
                     }
@@ -159,6 +200,7 @@ server.listen(PORT, () => {
 //    {
 //     --name
 //     --profile
+//     --score
 //    }
 
 
