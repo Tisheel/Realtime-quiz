@@ -4,7 +4,7 @@ import { createServer } from 'http'
 import { v4 as uuidv4 } from 'uuid'
 import url from 'url'
 import { createClient } from 'redis'
-import { broadcast, createRoom, getRoom, getRoomMembers, joinRoom, leaveRoom } from './Room.js'
+import { broadcast, broadcastAll, createRoom, getRoom, getRoomMembers, joinRoom, leaveRoom } from './Room.js'
 
 // Globals
 const PORT = 3001
@@ -74,19 +74,22 @@ wss.on('connection', (socket, req) => {
                                     leaderboard: []
                                 }
                                 await client.set(`Presentation:${id}`, JSON.stringify(ppt))
+                                socket.pptId = id
                                 createRoom(socket)
                             }
                             break
 
                         case 'NEXT':
                             {
-                                let { id, questions, currentQuestion, state, currentState, leaderboard } = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
-                                currentState = (currentState + 1) % 4
+                                let { id, questions, currentQuestion, state, currentState, leaderboard } = JSON.parse(await client.get(`Presentation:${socket.pptId}`))
+                                currentState = (currentState + 1) % state.length
                                 switch (state[currentState]) {
                                     case 'NOT_STARTED':
                                         {
-                                            const members = getRoomMembers(socket.roomId)
-                                            broadcast(socket, JSON.stringify(members))
+                                            const req = {
+                                                state: state[currentState]
+                                            }
+                                            broadcastAll(socket, JSON.stringify(req))
                                         }
                                         break
                                     case 'QUESTION':
@@ -98,19 +101,20 @@ wss.on('connection', (socket, req) => {
                                                     state: state[currentState],
                                                     question: questions[currentQuestion]
                                                 }
-                                                broadcast(socket, JSON.stringify(res))
+                                                broadcastAll(socket, JSON.stringify(res))
                                             } else {
                                                 const res = {
                                                     state: 'FINISHED'
                                                 }
-                                                broadcast(socket, JSON.stringify(res))
+                                                broadcastAll(socket, JSON.stringify(res))
                                             }
                                         }
                                         break
                                     case 'RESULT':
                                         {
-                                            let { questions, currentQuestion } = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
+                                            let { questions, currentQuestion } = JSON.parse(await client.get(`Presentation:${socket.pptId}`))
                                             const res = {
+                                                state: state[currentState],
                                                 options: [],
                                                 answer: questions[currentQuestion].answer
                                             }
@@ -118,19 +122,23 @@ wss.on('connection', (socket, req) => {
                                             for (let option of questions[currentQuestion].options) {
                                                 res.options.push((option.submissions.length) / members)
                                             }
-                                            broadcast(socket, JSON.stringify(res))
+                                            broadcastAll(socket, JSON.stringify(res))
                                         }
                                         break
                                     case 'LEADERBOARD':
                                         {
-                                            let { leaderboard } = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
-                                            broadcast(socket, JSON.stringify(leaderboard))
+                                            let { leaderboard } = JSON.parse(await client.get(`Presentation:${socket.pptId}`))
+                                            const res = {
+                                                state: state[currentState],
+                                                leaderboard
+                                            }
+                                            broadcastAll(socket, JSON.stringify(res))
                                         }
                                         break
                                     default:
                                         break
                                 }
-                                await client.set(`Presentation:${req.presentationId}`, JSON.stringify({ id, questions, currentQuestion, state, currentState, leaderboard }))
+                                await client.set(`Presentation:${socket.pptId}`, JSON.stringify({ id, questions, currentQuestion, state, currentState, leaderboard }))
                             }
                             break
 
@@ -156,16 +164,14 @@ wss.on('connection', (socket, req) => {
                         case 'SUBMIT':
                             {
                                 let ppt = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
-                                for (let question of ppt.questions) {
-                                    if (question.id === req.questionId) {
-                                        question.options[req.answerIndex].submissions.push({ id: socket.id, ...socket.user })
-                                        if (question.answer === req.answerIndex) {
-                                            socket.user.score += 100
-                                            ppt.leaderboard.push(socket.user)
-                                        }
-                                    }
+
+                                ppt.questions[ppt.currentQuestion].options[req.answerIndex].submissions.push({ id: socket.id, ...socket.user })
+
+                                if (ppt.questions[ppt.currentQuestion].answer === req.answerIndex) {
+                                    socket.user.score += 100
+                                    ppt.leaderboard.push(socket.user)
                                 }
-                                console.log(ppt)
+
                                 await client.set(`Presentation:${req.presentationId}`, JSON.stringify(ppt))
                             }
                             break
@@ -196,6 +202,7 @@ server.listen(PORT, () => {
 // Socket
 // --id
 // --?roomId
+// --?pptId
 // --user
 //    {
 //     --name
