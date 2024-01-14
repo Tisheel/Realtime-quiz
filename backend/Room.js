@@ -23,8 +23,15 @@ export const joinRoom = (roomId, socket) => {
         }
         room.add(socket)
         socket.roomId = roomId
+        broadcast(socket, JSON.stringify({
+            event: "MEMBER_JOIN",
+            member: socket.user
+        }))
         const members = getRoomMembers(roomId)
-        broadcast(socket, JSON.stringify(members))
+        socket.send(JSON.stringify({
+            event: "MEMBERS",
+            members
+        }))
     } else {
         socket.send('No Room')
     }
@@ -33,7 +40,7 @@ export const joinRoom = (roomId, socket) => {
 export const broadcast = (socket, data) => {
     const room = Rooms.get(socket.roomId)
     room.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
+        if (client.readyState === WebSocket.OPEN && client.id !== socket.id) {
             client.send(data)
         }
     })
@@ -42,8 +49,11 @@ export const broadcast = (socket, data) => {
 export const leaveRoom = (socket) => {
     const room = Rooms.get(socket.roomId)
     room.delete(socket)
-    const members = getRoomMembers(socket.roomId)
-    broadcast(socket, JSON.stringify(members))
+    const res = {
+        event: "MEMBER_LEAVE",
+        member: socket.user
+    }
+    broadcast(socket, JSON.stringify(res))
     delete socket.roomId
 }
 
