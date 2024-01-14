@@ -46,6 +46,16 @@ export const broadcast = (socket, data) => {
     })
 }
 
+export const broadcastAll = (socket, data) => {
+    const room = Rooms.get(socket.roomId)
+    room.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(data)
+        }
+    })
+}
+
+
 export const leaveRoom = (socket) => {
     const room = Rooms.get(socket.roomId)
     room.delete(socket)
