@@ -1,6 +1,27 @@
 import React from 'react'
+import { useState } from 'react'
+import { useContext } from 'react'
+import WebSocketContext from '../context/WebSocketContext'
 
 const Room = () => {
+
+    const [room, setRoom] = useState(null)
+    const [name, setName] = useState(null)
+
+    const { ws } = useContext(WebSocketContext)
+
+    const joinRoom = (e) => {
+        e.preventDefault()
+        ws.send(JSON.stringify({
+            event: 'JOIN',
+            roomId: room,
+            data: {
+                name,
+                profile: '🙂'
+            }
+        }))
+    }
+
     return (
         <div className='flex flex-col items-center justify-center h-screen'>
             <div className='flex flex-col items-center'>
@@ -14,16 +35,19 @@ const Room = () => {
                 </div>
                 <form className='font-mono w-full mb-5'>
                     <div>
-                        <input className='border-2 p-2 rounded-lg w-full' type='text' placeholder='1234-5678' />
+                        <input className='border-2 p-2 rounded-lg w-full' type='text' placeholder='1234-5678' onChange={(e) => setRoom(e.target.value)} />
                     </div>
                     <div className='mt-4 mb-4'>
                         <label className='font-bold text-xs'>Enter your name</label>
                         <div>
-                            <input className='border-2 p-2 rounded-lg w-full' type='text' />
+                            <input className='border-2 p-2 rounded-lg w-full' type='text' onChange={(e) => setName(e.target.value)} />
                         </div>
                     </div>
                     <div className='flex justify-center'>
-                        <button className='bg-black text-white font-bold text-sm p-2 rounded-xl'>Join quiz</button>
+                        <button className='bg-black text-white font-bold text-sm p-2 rounded-xl cursor-pointer'
+                            onClick={(e) => joinRoom(e)}>
+                            Join Quiz
+                        </button>
                     </div>
                 </form>
             </div>
