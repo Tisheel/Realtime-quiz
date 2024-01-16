@@ -4,7 +4,7 @@ import { createServer } from 'http'
 import { v4 as uuidv4 } from 'uuid'
 import url from 'url'
 import { createClient } from 'redis'
-import { broadcast, broadcastAll, createRoom, getRoom, getRoomMembers, joinRoom, leaveRoom } from './Room.js'
+import { broadcastAll, createRoom, getRoom, getRoomMembers, joinRoom, leaveRoom } from './Room.js'
 
 // Globals
 const PORT = 3001
@@ -87,6 +87,7 @@ wss.on('connection', (socket, req) => {
                                     case 'NOT_STARTED':
                                         {
                                             const req = {
+                                                event: "NEXT",
                                                 state: state[currentState]
                                             }
                                             broadcastAll(socket, JSON.stringify(req))
@@ -97,6 +98,7 @@ wss.on('connection', (socket, req) => {
                                             currentQuestion++
                                             if (currentQuestion < questions.length) {
                                                 const res = {
+                                                    event: "NEXT",
                                                     id,
                                                     state: state[currentState],
                                                     question: questions[currentQuestion]
@@ -114,6 +116,7 @@ wss.on('connection', (socket, req) => {
                                         {
                                             let { questions, currentQuestion } = JSON.parse(await client.get(`Presentation:${socket.pptId}`))
                                             const res = {
+                                                event: "NEXT",
                                                 state: state[currentState],
                                                 options: [],
                                                 answer: questions[currentQuestion].answer
@@ -129,6 +132,7 @@ wss.on('connection', (socket, req) => {
                                         {
                                             let { leaderboard } = JSON.parse(await client.get(`Presentation:${socket.pptId}`))
                                             const res = {
+                                                event: "NEXT",
                                                 state: state[currentState],
                                                 leaderboard
                                             }
