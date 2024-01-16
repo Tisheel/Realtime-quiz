@@ -143,6 +143,9 @@ wss.on('connection', (socket, req) => {
                             break
 
                         default:
+                            socket.send(JOSN.stringify({
+                                event: 'INVALID_EVENT'
+                            }))
                             break
                     }
                 })()

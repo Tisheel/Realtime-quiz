@@ -9,7 +9,7 @@ export const createRoom = (socket) => {
     socket.roomId = roomId
     Rooms.set(roomId, room)
     const res = {
-        event: 'ROOM_ID',
+        event: "ROOM_ID",
         roomId
     }
     socket.send(JSON.stringify(res))
@@ -23,22 +23,27 @@ export const joinRoom = (roomId, socket) => {
         }
         room.add(socket)
         socket.roomId = roomId
+        socket.send(JSON.stringify({
+            event: "ROOM_JOINED_SUCCESS"
+        }))
         broadcast(socket, JSON.stringify({
             event: "MEMBER_JOIN",
             member: socket.user
         }))
-        const members = getRoomMembers(roomId)
-        socket.send(JSON.stringify({
-            event: "MEMBERS",
-            members
+        broadcastAll(socket, JSON.stringify({
+            event: "ROOM_SIZE",
+            size: getRoom(roomId)?.size
         }))
     } else {
-        socket.send('No Room')
+        socket.send(JSON.stringify({
+            event: "ROOM_JOINED_FAIL",
+            data: `No Room ${roomId}`
+        }))
     }
 }
 
 export const broadcast = (socket, data) => {
-    const room = Rooms.get(socket.roomId)
+    const room = Rooms.get(socket?.roomId)
     room.forEach((client) => {
         if (client.readyState === WebSocket.OPEN && client.id !== socket.id) {
             client.send(data)
@@ -47,7 +52,7 @@ export const broadcast = (socket, data) => {
 }
 
 export const broadcastAll = (socket, data) => {
-    const room = Rooms.get(socket.roomId)
+    const room = Rooms.get(socket?.roomId)
     room.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(data)
@@ -57,13 +62,17 @@ export const broadcastAll = (socket, data) => {
 
 
 export const leaveRoom = (socket) => {
-    const room = Rooms.get(socket.roomId)
+    const room = Rooms.get(socket?.roomId)
     room.delete(socket)
     const res = {
         event: "MEMBER_LEAVE",
         member: socket.user
     }
     broadcast(socket, JSON.stringify(res))
+    broadcastAll(socket, JSON.stringify({
+        event: "ROOM_SIZE",
+        size: getRoom(socket?.roomId)?.size
+    }))
     delete socket.roomId
 }
 
@@ -78,7 +87,7 @@ export const getRoomMembers = (roomId) => {
     }
     const members = []
     for (let client of room) {
-        members.push(client.user)
+        members.push(client?.user)
     }
     return members
 }
