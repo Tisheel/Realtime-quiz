@@ -3,6 +3,9 @@ import { WebSocket } from 'ws'
 const Rooms = new Map()
 
 export const createRoom = (socket) => {
+    if (socket.roomId) {
+        leaveRoom(socket)
+    }
     const roomId = String(Math.floor(10000000 + Math.random() * 10000000))
     const room = new Set()
     room.add(socket)
