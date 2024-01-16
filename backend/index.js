@@ -115,15 +115,17 @@ wss.on('connection', (socket, req) => {
                                     case 'RESULT':
                                         {
                                             let { questions, currentQuestion } = JSON.parse(await client.get(`Presentation:${socket.pptId}`))
+                                            const question = questions[currentQuestion]
+                                            const options = []
+                                            for (let option of question.options) {
+                                                options.push(option.submissions.length)
+                                            }
+                                            question.options = options
                                             const res = {
                                                 event: "NEXT",
                                                 state: state[currentState],
-                                                options: [],
+                                                question,
                                                 answer: questions[currentQuestion].answer
-                                            }
-                                            const members = getRoom(socket.roomId).size
-                                            for (let option of questions[currentQuestion].options) {
-                                                res.options.push((option.submissions.length) / members)
                                             }
                                             broadcastAll(socket, JSON.stringify(res))
                                         }
