@@ -4,7 +4,13 @@ import { createServer } from 'http'
 import { v4 as uuidv4 } from 'uuid'
 import url from 'url'
 import { createClient } from 'redis'
-import { broadcastAll, createRoom, getRoom, getRoomMembers, joinRoom, leaveRoom } from './Room.js'
+import { broadcastAll, createRoom, deleteRoom, getRoom, getRoomMembers, joinRoom, leaveRoom } from './Room.js'
+import connectToMongoDB from './MongoDB.js'
+import mongoose from 'mongoose'
+import dotenv from 'dotenv'
+
+// Configure .env
+dotenv.config()
 
 // Globals
 const PORT = 3001
@@ -20,7 +26,12 @@ const client = await createClient()
     .on('error', err => console.log('Redis Client Error', err))
     .connect()
 
-wss.clients
+// MongoDB
+await connectToMongoDB(process.env.MONGO_URL, "Quiz")
+
+//Empty Schema
+const emptySchema = new mongoose.Schema({}, { strict: false, timestamps: true })
+const scheme = mongoose.model('Feedback', emptySchema)
 
 // Middlewares
 app.use(express.json())
@@ -108,7 +119,9 @@ wss.on('connection', (socket, req) => {
                                                 const res = {
                                                     state: 'FINISHED'
                                                 }
-                                                // save ppt to database
+                                                const data = new scheme({ id, questions, currentQuestion, state, currentState, leaderboard })
+                                                data.save()
+                                                deleteRoom(socket?.roomId)
                                                 broadcastAll(socket, JSON.stringify(res))
                                             }
                                         }
@@ -194,6 +207,9 @@ wss.on('connection', (socket, req) => {
                             }
                             break
                         default:
+                            socket.send(JOSN.stringify({
+                                event: 'INVALID_EVENT'
+                            }))
                             break
                     }
                 })()
@@ -201,6 +217,7 @@ wss.on('connection', (socket, req) => {
             break
 
         default:
+            socket.close()
             break
     }
 
@@ -230,7 +247,7 @@ server.listen(PORT, () => {
 
 
 // Room
-// --set of socket ids
+// --set of socket
 
 // TODO
 // implement Map of socket ???
