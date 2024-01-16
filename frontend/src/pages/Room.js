@@ -8,18 +8,12 @@ const Room = () => {
     const [room, setRoom] = useState(null)
     const [name, setName] = useState(null)
 
-    const { ws } = useContext(WebSocketContext)
+    const { joinRoom } = useContext(WebSocketContext)
 
-    const joinRoom = (e) => {
+    const handleJoinRoom = (e) => {
         e.preventDefault()
-        ws.send(JSON.stringify({
-            event: 'JOIN',
-            roomId: room,
-            data: {
-                name,
-                profile: '🙂'
-            }
-        }))
+        // validation to be done
+        joinRoom(room, name)
     }
 
     return (
@@ -45,7 +39,7 @@ const Room = () => {
                     </div>
                     <div className='flex justify-center'>
                         <button className='bg-black text-white font-bold text-sm p-2 rounded-xl cursor-pointer'
-                            onClick={(e) => joinRoom(e)}>
+                            onClick={(e) => handleJoinRoom(e)}>
                             Join Quiz
                         </button>
                     </div>
