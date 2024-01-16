@@ -108,6 +108,7 @@ wss.on('connection', (socket, req) => {
                                                 const res = {
                                                     state: 'FINISHED'
                                                 }
+                                                // save ppt to database
                                                 broadcastAll(socket, JSON.stringify(res))
                                             }
                                         }
@@ -136,7 +137,7 @@ wss.on('connection', (socket, req) => {
                                             const res = {
                                                 event: "NEXT",
                                                 state: state[currentState],
-                                                leaderboard
+                                                leaderboard: leaderboard.sort((a, b) => b.score - a.score)
                                             }
                                             broadcastAll(socket, JSON.stringify(res))
                                         }
@@ -173,13 +174,20 @@ wss.on('connection', (socket, req) => {
                         case 'SUBMIT':
                             {
                                 let ppt = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
-
+                                let isPresent = false
                                 ppt.questions[ppt.currentQuestion].options[req.answerIndex].submissions.push({ id: socket.id, ...socket.user })
-                                console.log(ppt.questions[ppt.currentQuestion])
-                                console.log(req)
+
                                 if (ppt.questions[ppt.currentQuestion].answer === Number(req.answerIndex)) {
                                     socket.user.score += 100
-                                    ppt.leaderboard.push(socket.user)
+                                    for (let member of ppt.leaderboard) {
+                                        if (member.profile === socket.user.profile) {
+                                            isPresent = true
+                                            member.score += 100
+                                        }
+                                    }
+                                    if (!isPresent) {
+                                        ppt.leaderboard.push(socket.user)
+                                    }
                                 }
 
                                 await client.set(`Presentation:${req.presentationId}`, JSON.stringify(ppt))
