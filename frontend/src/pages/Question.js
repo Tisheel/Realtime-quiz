@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import WebSocketContext from '../context/WebSocketContext'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -6,6 +6,8 @@ import toast from 'react-hot-toast'
 const Question = () => {
 
     const navigate = useNavigate()
+
+    const [double, setDouble] = useState(false)
 
     const { user, room, currentState, submitAnswer } = useContext(WebSocketContext)
     const question = currentState?.question
@@ -23,6 +25,7 @@ const Question = () => {
             return toast('No option is selected')
         }
         submitAnswer(currentState?.id, answerIndex)
+        setDouble(true)
     }
 
     return (
@@ -54,7 +57,7 @@ const Question = () => {
                     }
                 </div>
                 <div>
-                    <button className='bg-black text-white font-bold text-sm p-2 rounded-xl px-6' onClick={() => handleSubmit()}>Done</button>
+                    <button disabled={double} className='bg-black text-white font-bold text-sm p-2 rounded-xl px-6' onClick={() => handleSubmit()}>Done</button>
                 </div>
             </div>
         </div>
