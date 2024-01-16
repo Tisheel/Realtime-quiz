@@ -26,10 +26,10 @@ export const joinRoom = (roomId, socket) => {
         socket.send(JSON.stringify({
             event: "ROOM_JOINED_SUCCESS"
         }))
-        broadcast(socket, JSON.stringify({
-            event: "MEMBER_JOIN",
-            member: socket.user
-        }))
+        // broadcast(socket, JSON.stringify({
+        //     event: "MEMBER_JOIN",
+        //     member: socket.user
+        // }))
         broadcastAll(socket, JSON.stringify({
             event: "ROOM_SIZE",
             size: getRoom(roomId)?.size
@@ -64,11 +64,11 @@ export const broadcastAll = (socket, data) => {
 export const leaveRoom = (socket) => {
     const room = Rooms.get(socket?.roomId)
     room.delete(socket)
-    const res = {
-        event: "MEMBER_LEAVE",
-        member: socket.user
-    }
-    broadcast(socket, JSON.stringify(res))
+    // const res = {
+    //     event: "MEMBER_LEAVE",
+    //     member: socket.user
+    // }
+    // broadcast(socket, JSON.stringify(res))
     broadcastAll(socket, JSON.stringify({
         event: "ROOM_SIZE",
         size: getRoom(socket?.roomId)?.size
