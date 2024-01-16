@@ -175,8 +175,9 @@ wss.on('connection', (socket, req) => {
                                 let ppt = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
 
                                 ppt.questions[ppt.currentQuestion].options[req.answerIndex].submissions.push({ id: socket.id, ...socket.user })
-
-                                if (ppt.questions[ppt.currentQuestion].answer === req.answerIndex) {
+                                console.log(ppt.questions[ppt.currentQuestion])
+                                console.log(req)
+                                if (ppt.questions[ppt.currentQuestion].answer === Number(req.answerIndex)) {
                                     socket.user.score += 100
                                     ppt.leaderboard.push(socket.user)
                                 }
