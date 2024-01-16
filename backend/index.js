@@ -117,12 +117,13 @@ wss.on('connection', (socket, req) => {
                                                 broadcastAll(socket, JSON.stringify(res))
                                             } else {
                                                 const res = {
+                                                    event: "NEXT",
                                                     state: 'FINISHED'
                                                 }
                                                 const data = new scheme({ id, questions, currentQuestion, state, currentState, leaderboard })
                                                 data.save()
-                                                deleteRoom(socket?.roomId)
                                                 broadcastAll(socket, JSON.stringify(res))
+                                                deleteRoom(socket?.roomId)
                                             }
                                         }
                                         break
