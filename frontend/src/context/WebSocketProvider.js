@@ -67,6 +67,10 @@ const WebSocketProvider = ({ children }) => {
                         case "LEADERBOARD":
                             navigate(`/${room}/leaderboard`)
                             break
+                        case "FINISH":
+                            toast.success('Test Completed!!!')
+                            navigate(`/`)
+                            break
                         default:
                             navigate('/')
                             break
