@@ -1,14 +1,38 @@
-import React from 'react'
+import React, { useContext, useEffect } from 'react'
 import { Bar } from "react-chartjs-2"
 import { Chart as ChartJS } from "chart.js/auto"
+import WebSocketContext from '../context/WebSocketContext'
+import { useNavigate } from 'react-router-dom'
 
 const Result = () => {
+
+    const navigate = useNavigate()
+
+    const { user, room, currentState } = useContext(WebSocketContext)
+    const question = currentState?.question
+
+    useEffect(() => {
+        if (user === null && currentState?.state !== "RESULT") {
+            navigate('/')
+            return
+        }
+    }, [])
+
+    const backgroundColor = [
+        'rgba(255, 0, 0, 0.6)',
+        'rgba(255, 0, 0, 0.6)',
+        'rgba(255, 0, 0, 0.6)',
+        'rgba(255, 0, 0, 0.6)'
+    ]
+
+    backgroundColor[currentState?.answer] = 'rgba(65, 255, 0, 0.6)'
+
     return (
         <div className='font-mono'>
             <div className='text-center p-2 bg-gray-200 text-sm'>
                 <span>
                     <span>use code</span>
-                    <span className='font-bold'> 1234-5678 </span>
+                    <span className='font-bold'> {room} </span>
                     <span>to join</span>
                 </span>
             </div>
@@ -18,9 +42,7 @@ const Result = () => {
                 </div>
                 <div className='mt-6 mb-12'>
                     <p className='font-bold'>
-                        Admin should be allowed to add questions
-                        Admin should be allowed to move to the next questions
-                        Admin should be allowed to show the leaderboard to everyone
+                        {question?.question}
                     </p>
                 </div>
                 <div>
@@ -40,13 +62,8 @@ const Result = () => {
                         data={{
                             labels: ['1', '2', '3', '4'],
                             datasets: [{
-                                data: [25, 20, 50, 5],
-                                backgroundColor: [
-                                    'rgba(255, 0, 0, 0.6)',
-                                    'rgba(255, 0, 0, 0.6)',
-                                    'rgba(65, 255, 0, 0.6)',
-                                    'rgba(255, 0, 0, 0.6)'
-                                ]
+                                data: question?.options,
+                                backgroundColor
                             }]
                         }}
                     />

@@ -7,10 +7,10 @@ const NotStarted = () => {
 
     const navigate = useNavigate()
 
-    const { user, room, roomSize } = useContext(WebSocketContext)
+    const { user, room, roomSize, currentState } = useContext(WebSocketContext)
 
     useEffect(() => {
-        if (user === null) {
+        if (user === null && currentState?.state !== "NOT_STARTED") {
             navigate('/')
             return
         }
