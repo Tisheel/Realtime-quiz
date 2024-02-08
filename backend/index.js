@@ -4,10 +4,11 @@ import { createServer } from 'http'
 import { v4 as uuidv4 } from 'uuid'
 import url from 'url'
 import { createClient } from 'redis'
-import { broadcastAll, createRoom, deleteRoom, getRoom, getRoomMembers, joinRoom, leaveRoom } from './Room.js'
+import { leaveRoom } from './Room.js'
 import connectToMongoDB from './MongoDB.js'
 import dotenv from 'dotenv'
 import testRouter from './testRouter.js'
+import { CreateRoom, Join, Next, Submit } from './utils.js'
 
 // Configure .env
 dotenv.config()
@@ -47,93 +48,11 @@ wss.on('connection', (socket, req) => {
                     ; (async () => {
                         switch (req.event) {
                             case 'CREATE_ROOM':
-                                {
-                                    const { id, questions } = JSON.parse(await client.get(`Test:${req.testId}`))
-                                    const ppt = {
-                                        id,
-                                        questions,
-                                        currentQuestion: -1,
-                                        state: ['NOT_STARTED', 'QUESTION', 'RESULT', 'LEADERBOARD'],
-                                        currentState: 0,
-                                        leaderboard: []
-                                    }
-                                    await client.set(`Presentation:${id}`, JSON.stringify(ppt))
-                                    socket.pptId = id
-                                    createRoom(socket)
-                                }
+                                CreateRoom(socket, client, req)
                                 break
 
                             case 'NEXT':
-                                {
-                                    let { id, questions, currentQuestion, state, currentState, leaderboard } = JSON.parse(await client.get(`Presentation:${socket.pptId}`))
-                                    currentState = (currentState + 1) % state.length
-                                    switch (state[currentState]) {
-                                        case 'NOT_STARTED':
-                                            {
-                                                const req = {
-                                                    event: "NEXT",
-                                                    state: state[currentState]
-                                                }
-                                                broadcastAll(socket, JSON.stringify(req))
-                                            }
-                                            break
-                                        case 'QUESTION':
-                                            {
-                                                currentQuestion++
-                                                if (currentQuestion < questions.length) {
-                                                    const res = {
-                                                        event: "NEXT",
-                                                        id,
-                                                        state: state[currentState],
-                                                        question: questions[currentQuestion]
-                                                    }
-                                                    broadcastAll(socket, JSON.stringify(res))
-                                                } else {
-                                                    const res = {
-                                                        event: "NEXT",
-                                                        state: 'FINISHED'
-                                                    }
-                                                    const data = new scheme({ id, questions, currentQuestion, state, currentState, leaderboard })
-                                                    data.save()
-                                                    broadcastAll(socket, JSON.stringify(res))
-                                                    deleteRoom(socket?.roomId)
-                                                }
-                                            }
-                                            break
-                                        case 'RESULT':
-                                            {
-                                                let { questions, currentQuestion } = JSON.parse(await client.get(`Presentation:${socket.pptId}`))
-                                                const question = questions[currentQuestion]
-                                                const options = []
-                                                for (let option of question.options) {
-                                                    options.push(option.submissions.length)
-                                                }
-                                                question.options = options
-                                                const res = {
-                                                    event: "NEXT",
-                                                    state: state[currentState],
-                                                    question,
-                                                    answer: questions[currentQuestion].answer
-                                                }
-                                                broadcastAll(socket, JSON.stringify(res))
-                                            }
-                                            break
-                                        case 'LEADERBOARD':
-                                            {
-                                                let { leaderboard } = JSON.parse(await client.get(`Presentation:${socket.pptId}`))
-                                                const res = {
-                                                    event: "NEXT",
-                                                    state: state[currentState],
-                                                    leaderboard: leaderboard.sort((a, b) => b.score - a.score)
-                                                }
-                                                broadcastAll(socket, JSON.stringify(res))
-                                            }
-                                            break
-                                        default:
-                                            break
-                                    }
-                                    await client.set(`Presentation:${socket.pptId}`, JSON.stringify({ id, questions, currentQuestion, state, currentState, leaderboard }))
-                                }
+                                Next(socket, client)
                                 break
 
                             default:
@@ -150,35 +69,12 @@ wss.on('connection', (socket, req) => {
             socket.on('message', (data) => {
                 const req = JSON.parse(data.toString());
                 (async () => {
-                    switch (req.event) {
+                    switch (req?.event) {
                         case 'JOIN':
-                            {
-                                const { name, profile } = req.data
-                                socket.user = { name, profile, score: 0 }
-                                joinRoom(req.roomId, socket)
-                            }
+                            Join(socket, req)
                             break
                         case 'SUBMIT':
-                            {
-                                let ppt = JSON.parse(await client.get(`Presentation:${req.presentationId}`))
-                                let isPresent = false
-                                ppt.questions[ppt.currentQuestion].options[req.answerIndex].submissions.push({ id: socket.id, ...socket.user })
-
-                                if (ppt.questions[ppt.currentQuestion].answer === Number(req.answerIndex)) {
-                                    socket.user.score += 100
-                                    for (let member of ppt.leaderboard) {
-                                        if (member.profile === socket.user.profile) {
-                                            isPresent = true
-                                            member.score += 100
-                                        }
-                                    }
-                                    if (!isPresent) {
-                                        ppt.leaderboard.push(socket.user)
-                                    }
-                                }
-
-                                await client.set(`Presentation:${req.presentationId}`, JSON.stringify(ppt))
-                            }
+                            Submit(socket, client, req)
                             break
                         default:
                             socket.send(JOSN.stringify({
@@ -196,8 +92,8 @@ wss.on('connection', (socket, req) => {
     }
 
     socket.on('close', () => {
-        console.log(`Disconnected: ${socket.id} [${wss.clients.size}]`)
-        if (socket.roomId) {
+        console.log(`Disconnected: ${socket?.id} [${wss.clients.size}]`)
+        if (socket?.roomId) {
             leaveRoom(socket)
         }
     })
