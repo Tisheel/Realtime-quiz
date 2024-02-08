@@ -14,7 +14,7 @@ const WebSocketProvider = ({ children }) => {
     const [currentState, setCurrentState] = useState(null)
 
     useEffect(() => {
-        const ws = new WebSocket('ws://192.168.42.167:3001/room')
+        const ws = new WebSocket('ws://192.168.164.167:3001/room')
         ws.onopen = () => {
             setWs(ws)
         }

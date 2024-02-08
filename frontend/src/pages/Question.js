@@ -57,7 +57,12 @@ const Question = () => {
                     }
                 </div>
                 <div>
-                    <button disabled={double} className='bg-black text-white font-bold text-sm p-2 rounded-xl px-6' onClick={() => handleSubmit()}>Done</button>
+                    {
+                        !double ? <button disabled={double} className='bg-black text-white font-bold text-sm p-2 rounded-xl px-6' onClick={() => handleSubmit()}>Done</button>
+                            : <div>
+                                <span className='font-bold text-xs text-gray-500'>waiting for host to start</span>
+                            </div>
+                    }
                 </div>
             </div>
         </div>
