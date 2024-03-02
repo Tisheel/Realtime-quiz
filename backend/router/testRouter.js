@@ -1,6 +1,6 @@
 import { Router } from "express"
 import Joi from 'joi'
-import Test from "./testModal.js"
+import Test from "../modals/testModal.js"
 
 const router = Router()
 

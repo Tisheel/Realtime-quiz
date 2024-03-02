@@ -7,7 +7,7 @@ import { createClient } from 'redis'
 import { leaveRoom } from './Room.js'
 import connectToMongoDB from './MongoDB.js'
 import dotenv from 'dotenv'
-import testRouter from './testRouter.js'
+import testRouter from './router/testRouter.js'
 import { CreateRoom, Join, Next, Submit } from './utils.js'
 
 // Configure .env

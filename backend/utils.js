@@ -1,7 +1,7 @@
-import Test from './testModal.js'
+import Test from './modals/testModal.js'
 import { broadcastAll, createRoom, deleteRoom, joinRoom } from './Room.js'
 import { MongooseError } from 'mongoose'
-import Analytics from './analyticsModal.js'
+import Analytics from './modals/analyticsModal.js'
 
 export const CreateRoom = async (socket, client, req) => {
     try {
