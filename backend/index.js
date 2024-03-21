@@ -12,6 +12,7 @@ import teacherRouter from './router/teacherRouter.js'
 import { CreateRoom, Join, Next, Submit } from './utils.js'
 import Teacher from './modals/teacherModal.js'
 import jwt from 'jsonwebtoken'
+import cors from 'cors'
 
 // Configure .env
 dotenv.config()
@@ -36,19 +37,19 @@ await connectToMongoDB(process.env.MONGO_URL, 'Test')
 
 // Middlewares
 app.use(express.json())
+app.use(cors())
 app.use('/v1', testRouter)
 app.use('/v1', teacherRouter)
-app.use(cors())
 
 server.on('upgrade', async (request, socket, head) => {
 
-    const { pathname } = url.parse(request.url, true)
+    const { pathname, query } = url.parse(request.url, true)
 
     if (pathname === '/teacher') {
 
         try {
 
-            const { token } = request.headers
+            const { token } = query
 
             if (!token) {
 
