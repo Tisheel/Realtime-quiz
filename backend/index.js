@@ -38,6 +38,7 @@ await connectToMongoDB(process.env.MONGO_URL, 'Test')
 app.use(express.json())
 app.use('/v1', testRouter)
 app.use('/v1', teacherRouter)
+app.use(cors())
 
 server.on('upgrade', async (request, socket, head) => {
 
