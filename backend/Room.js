@@ -4,7 +4,7 @@ const Rooms = new Map()
 
 export const createRoom = (socket) => {
     if (socket.roomId) {
-        leaveRoom(socket)
+        deleteRoom(roomId)
     }
     const roomId = String(Math.floor(10000000 + Math.random() * 10000000))
     const room = new Set()

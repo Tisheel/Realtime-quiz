@@ -7,7 +7,7 @@ export const CreateRoom = async (socket, client, req) => {
     try {
         const test = await Test.findOne({ _id: req?.testId })
         if (!test) {
-            socket.send(JSON.stringify({
+            return socket.send(JSON.stringify({
                 message: 'No Test found'
             }))
         }
