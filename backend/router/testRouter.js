@@ -1,6 +1,7 @@
 import { Router } from "express"
 import Joi from 'joi'
 import Test from "../modals/testModal.js"
+import teacher from "../middlewares/teacher.js"
 
 const router = Router()
 
@@ -20,8 +21,7 @@ const testSchema = Joi.object({
     questions: Joi.array().items(questionSchema).required()
 })
 
-
-router.post('/test', async (req, res) => {
+router.post('/test', teacher, async (req, res) => {
 
     try {
 
@@ -48,6 +48,7 @@ router.post('/test', async (req, res) => {
 
         }
 
+        console.log(error)
         res.status(500).json({
             message: 'Somthing went wrong'
         })
@@ -74,8 +75,7 @@ router.get('/test', async (req, res) => {
 
     } catch (error) {
 
-        res.json(error)
-
+        console.log(error)
         res.status(500).json({
             message: 'Somthing went wrong'
         })
