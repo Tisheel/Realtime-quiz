@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import WebSocketContext from './WebSocketContext'
 import { useNavigate } from "react-router-dom"
 import toast from 'react-hot-toast'
+import { WS_ROOM, WS_TEACHER } from '../utils/constants'
 
 const WebSocketProvider = ({ children }) => {
 
@@ -15,7 +16,7 @@ const WebSocketProvider = ({ children }) => {
 
     const joinRoom = (room, name) => {
 
-        const ws = new WebSocket(`ws://${window.location.host}/room`)
+        const ws = new WebSocket(WS_ROOM)
 
         ws.onerror = () => {
             toast.error('Error connecting to web socket')
@@ -43,7 +44,7 @@ const WebSocketProvider = ({ children }) => {
                     setUser({ name, profile: seed })
                     setRoom(room)
                     setCurrentState({ state: "NOT_STARTED" })
-                    navigate(`/${room}/not_started`)
+                    navigate(`/not_started`)
                     toast.success('Room Joined Successfully')
                     break
                 case "ROOM_JOINED_FAIL":
@@ -55,16 +56,16 @@ const WebSocketProvider = ({ children }) => {
                 case "NEXT":
                     switch (res.state) {
                         case "NOT_STARTED":
-                            navigate(`/${room}/not_started`)
+                            navigate(`/not_started`)
                             break
                         case "QUESTION":
-                            navigate(`/${room}/question`)
+                            navigate(`/question`)
                             break
                         case "RESULT":
-                            navigate(`/${room}/result`)
+                            navigate(`/result`)
                             break
                         case "LEADERBOARD":
-                            navigate(`/${room}/leaderboard`)
+                            navigate(`/leaderboard`)
                             break
                         case "FINISH":
                             navigate(`/`)
@@ -83,7 +84,7 @@ const WebSocketProvider = ({ children }) => {
 
     const streamTest = (testId) => {
 
-        const ws = new WebSocket(`ws://${window.location.host}/teacher?token=${sessionStorage.getItem('token')}`)
+        const ws = new WebSocket(WS_TEACHER + `?token=${sessionStorage.getItem('token')}`)
 
         ws.onerror = () => {
             toast.error('Error connecting to web socket')
@@ -102,13 +103,13 @@ const WebSocketProvider = ({ children }) => {
         const seed = Math.random()
 
         ws.onmessage = async (e) => {
-            const res = await JSON.parse(e.data)
+            const res = JSON.parse(e.data)
             switch (res.event) {
                 case "ROOM_ID":
                     setRoom(res.roomId)
                     setUser({ name: "Host", profile: seed })
                     setCurrentState({ state: "NOT_STARTED" })
-                    navigate(`/${res.roomId}/not_started`)
+                    navigate(`/not_started`)
                     toast.success('Room Joined Successfully')
                     break
                 case "ROOM_SIZE":
@@ -117,19 +118,19 @@ const WebSocketProvider = ({ children }) => {
                 case "NEXT":
                     switch (res.state) {
                         case "NOT_STARTED":
-                            navigate(`/${res.roomId}/not_started`)
+                            navigate(`/not_started`)
                             break
                         case "QUESTION":
-                            navigate(`/${res.roomId}/question`)
+                            navigate(`/question`)
                             break
                         case "RESULT":
-                            navigate(`/${res.roomId}/result`)
+                            navigate(`/result`)
                             break
                         case "LEADERBOARD":
-                            navigate(`/${res.roomId}/leaderboard`)
+                            navigate(`/leaderboard`)
                             break
                         case "FINISH":
-                            navigate(`/`)
+                            navigate(`/dashboard`)
                             toast.success('Test Completed!!!')
                             break
                         default:

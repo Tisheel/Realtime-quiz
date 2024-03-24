@@ -4,6 +4,7 @@ import axios from 'axios'
 import { toast } from 'react-hot-toast'
 import WebSocketContext from '../../context/WebSocketContext'
 import Header from './Header'
+import { GET_TESTS } from '../../utils/constants'
 
 const Dashboard = () => {
 
@@ -19,7 +20,7 @@ const Dashboard = () => {
 
         try {
 
-            const { data } = await axios.get('/v1/test')
+            const { data } = await axios.get(GET_TESTS)
 
             setTests(data)
 

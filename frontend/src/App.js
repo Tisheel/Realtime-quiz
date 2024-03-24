@@ -14,10 +14,10 @@ const App = () => {
     <>
       <Routes>
         <Route path='/' element={<Room />} />
-        <Route path='/:roomId/not_started' element={<NotStarted />} />
-        <Route path='/:roomId/question' element={<Question />} />
-        <Route path='/:roomId/result' element={<Result />} />
-        <Route path='/:roomId/leaderboard' element={<Leaderboard />} />
+        <Route path='/not_started' element={<NotStarted />} />
+        <Route path='/question' element={<Question />} />
+        <Route path='/result' element={<Result />} />
+        <Route path='/leaderboard' element={<Leaderboard />} />
         <Route path='/login' element={<Login />} />
         <Route path='/dashboard' element={<Dashboard />} />
       </Routes>

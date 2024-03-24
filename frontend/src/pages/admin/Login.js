@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
+import { LOGIN } from '../../utils/constants'
 
 const Login = () => {
 
@@ -19,7 +20,7 @@ const Login = () => {
 
         try {
 
-            const { data } = await axios.post('/v1/login', { email, password })
+            const { data } = await axios.post(LOGIN, { email, password })
 
             sessionStorage.setItem('token', data?.token)
             navigate('/dashboard')
