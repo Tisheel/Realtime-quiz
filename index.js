@@ -44,9 +44,9 @@ app.use(cors())
 app.use('/v1', testRouter)
 app.use('/v1', teacherRouter)
 
-app.use(express.static(path.join(__dirname, '..', 'frontend', 'build')))
+app.use(express.static(path.join(__dirname, 'frontend', 'build')))
 app.use('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'build', 'index.html'))
+    res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'))
 })
 app.get('*', function (req, res) {
     res.status(404).send('Page not found go back to <a href="/">home</a>')
