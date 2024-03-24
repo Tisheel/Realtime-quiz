@@ -19,7 +19,7 @@ const Login = () => {
 
         try {
 
-            const { data } = await axios.post('http://127.0.0.1:3001/v1/login', { email, password })
+            const { data } = await axios.post('/v1/login', { email, password })
 
             sessionStorage.setItem('token', data?.token)
             navigate('/dashboard')

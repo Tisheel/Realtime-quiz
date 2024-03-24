@@ -19,7 +19,7 @@ const Dashboard = () => {
 
         try {
 
-            const { data } = await axios.get('http://127.0.0.1:3001/v1/test')
+            const { data } = await axios.get('/v1/test')
 
             setTests(data)
 

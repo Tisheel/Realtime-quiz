@@ -15,7 +15,7 @@ const WebSocketProvider = ({ children }) => {
 
     const joinRoom = (room, name) => {
 
-        const ws = new WebSocket('ws://127.0.0.1:3001/room')
+        const ws = new WebSocket('/room')
 
         ws.onerror = () => {
             toast.error('Error connecting to web socket')
@@ -83,7 +83,7 @@ const WebSocketProvider = ({ children }) => {
 
     const streamTest = (testId) => {
 
-        const ws = new WebSocket(`ws://127.0.0.1:3001/teacher?token=${sessionStorage.getItem('token')}`)
+        const ws = new WebSocket(`/teacher?token=${sessionStorage.getItem('token')}`)
 
         ws.onerror = () => {
             toast.error('Error connecting to web socket')
