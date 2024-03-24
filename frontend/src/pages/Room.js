@@ -12,7 +12,6 @@ const Room = () => {
 
     const handleJoinRoom = (e) => {
         e.preventDefault()
-        // validation to be done
         joinRoom(room, name)
     }
 
@@ -27,19 +26,18 @@ const Room = () => {
                         <span className='font-extralight text-sm text-gray-600'>it's on the screen in front of you</span>
                     </div>
                 </div>
-                <form className='font-mono w-full mb-5'>
+                <form className='font-mono w-full mb-5' onSubmit={(e) => handleJoinRoom(e)}>
                     <div>
-                        <input className='border-2 p-2 rounded-lg w-full' type='text' placeholder='1234-5678' onChange={(e) => setRoom(e.target.value)} />
+                        <input className='border-2 p-2 rounded-lg w-full' type='text' placeholder='1234-5678' onChange={(e) => setRoom(e.target.value)} required />
                     </div>
                     <div className='mt-4 mb-4'>
                         <label className='font-bold text-xs'>Enter your name</label>
                         <div>
-                            <input className='border-2 p-2 rounded-lg w-full' type='text' onChange={(e) => setName(e.target.value)} />
+                            <input className='border-2 p-2 rounded-lg w-full' type='text' onChange={(e) => setName(e.target.value)} required />
                         </div>
                     </div>
                     <div className='flex justify-center'>
-                        <button className='bg-black text-white font-bold text-sm p-2 rounded-xl cursor-pointer'
-                            onClick={(e) => handleJoinRoom(e)}>
+                        <button className='bg-black text-white font-bold text-sm p-2 rounded-xl cursor-pointer'>
                             Join Quiz
                         </button>
                     </div>

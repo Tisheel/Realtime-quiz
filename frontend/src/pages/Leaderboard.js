@@ -6,7 +6,7 @@ const Leaderboard = () => {
 
     const navigate = useNavigate()
 
-    const { user, room, currentState } = useContext(WebSocketContext)
+    const { user, room, currentState, next } = useContext(WebSocketContext)
 
     useEffect(() => {
         if (user === null && currentState?.state !== "LEADERBOARD") {
@@ -16,35 +16,40 @@ const Leaderboard = () => {
     }, [])
 
     return (
-        <div className='font-mono'>
-            <div className='text-center p-2 bg-gray-200 text-sm'>
-                <span>
-                    <span>use code</span>
-                    <span className='font-bold'> {room} </span>
-                    <span>to join</span>
-                </span>
-            </div>
-            <div className='my-6 mx-2'>
-                <div>
-                    <span className='font-bold text-2xl'>Leaderboard</span>
+        <>
+            <div className='font-mono'>
+                <div className='text-center p-2 bg-gray-200 text-sm'>
+                    <span>
+                        <span>use code</span>
+                        <span className='font-bold'> {room} </span>
+                        <span>to join</span>
+                    </span>
                 </div>
-                <div>
-                    {
-                        currentState?.leaderboard.map((member, index) => {
-                            return <div className='flex items-center justify-between px-10 my-2' key={index}>
-                                <span>#{index + 1}</span>
-                                <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=${member.profile}`} className='w-14 bg-gray-100 rounded-full' />
-                                <span>{member.name}</span>
-                                <span>{member.score}p</span>
-                            </div>
-                        })
-                    }
+                <div className='my-6 mx-2'>
+                    <div>
+                        <span className='font-bold text-2xl'>Leaderboard</span>
+                    </div>
+                    <div>
+                        {
+                            currentState?.leaderboard.map((member, index) => {
+                                return <div className='flex items-center justify-between px-10 my-2' key={index}>
+                                    <span>#{index + 1}</span>
+                                    <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=${member.profile}`} className='w-14 bg-gray-100 rounded-full' />
+                                    <span>{member.name}</span>
+                                    <span>{member.score}p</span>
+                                </div>
+                            })
+                        }
+                    </div>
+                </div>
+                <div className='text-center'>
+                    <span className='font-bold text-xs text-gray-500 animate-pulse'>waiting for host to continue...</span>
                 </div>
             </div>
-            <div className='text-center'>
-                <span className='font-bold text-xs text-gray-500 animate-pulse'>waiting for host to continue...</span>
-            </div>
-        </div>
+            {
+                sessionStorage.getItem('token') && <button className='bg-blue-900 absolute bottom-0 w-full text-white font-semibold py-4' onClick={() => next()}>NEXT</button>
+            }
+        </>
     )
 }
 
