@@ -47,7 +47,7 @@ const Leaderboard = () => {
                 </div>
             </div>
             {
-                sessionStorage.getItem('token') && <button className='bg-blue-900 absolute bottom-0 w-full text-white font-semibold py-4' onClick={() => next()}>NEXT</button>
+                sessionStorage.getItem('token') && <button className='bg-blue-900 relative bottom-0 w-full text-white font-semibold py-4' onClick={() => next()}>NEXT</button>
             }
         </>
     )

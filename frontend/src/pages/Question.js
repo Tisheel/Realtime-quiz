@@ -39,9 +39,9 @@ const Question = () => {
                     </span>
                 </div>
                 <div className='my-6 mx-2'>
-                    <div>
+                    {/* <div>
                         <span>Question <span className='font-bold'>2</span> of <span className='font-bold'>5</span></span>
-                    </div>
+                    </div> */}
                     <div className='my-6'>
                         <p className='font-bold'>
                             {question?.question}
@@ -69,7 +69,7 @@ const Question = () => {
                 </div>
             </div>
             {
-                sessionStorage.getItem('token') && <button className='bg-blue-900 absolute bottom-0 w-full text-white font-semibold py-4' onClick={() => next()}>NEXT</button>
+                sessionStorage.getItem('token') && <button className='bg-blue-900 relative bottom-0 w-full text-white font-semibold py-4' onClick={() => next()}>NEXT</button>
             }
         </>
     )
