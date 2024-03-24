@@ -2,7 +2,7 @@ import express from 'express'
 import { WebSocketServer } from 'ws'
 import { createServer } from 'http'
 import { v4 as uuidv4 } from 'uuid'
-import url from 'url'
+import url, { fileURLToPath } from 'url'
 import { createClient } from 'redis'
 import { leaveRoom } from './Room.js'
 import connectToMongoDB from './MongoDB.js'
@@ -13,6 +13,7 @@ import { CreateRoom, Join, Next, Submit } from './utils.js'
 import Teacher from './modals/teacherModal.js'
 import jwt from 'jsonwebtoken'
 import cors from 'cors'
+import path from 'path'
 
 // Configure .env
 dotenv.config()
@@ -20,6 +21,8 @@ dotenv.config()
 // Globals
 const PORT = 3001
 const HOST = '127.0.0.1'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Servers Instances
 const app = express()
@@ -40,6 +43,14 @@ app.use(express.json())
 app.use(cors())
 app.use('/v1', testRouter)
 app.use('/v1', teacherRouter)
+
+app.use(express.static(path.join(__dirname, '..', 'frontend', 'build')))
+app.use('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'build', 'index.html'))
+})
+app.get('*', function (req, res) {
+    res.status(404).send('Page not found go back to <a href="/">home</a>')
+})
 
 server.on('upgrade', async (request, socket, head) => {
 

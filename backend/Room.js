@@ -69,6 +69,8 @@ export const leaveRoom = (socket) => {
         event: "ROOM_SIZE",
         size: getRoom(socket?.roomId)?.size
     }))
+    if (room.size === 0)
+        Rooms.delete(socket.roomId)
     delete socket.roomId
     console.log(Rooms)
 }
