@@ -16,6 +16,7 @@ export const createRoom = (socket) => {
         roomId
     }
     socket.send(JSON.stringify(res))
+    console.log(Rooms)
 }
 
 export const joinRoom = (roomId, socket) => {
@@ -39,6 +40,7 @@ export const joinRoom = (roomId, socket) => {
             data: `No Room ${roomId}`
         }))
     }
+    console.log(Rooms)
 }
 
 export const broadcast = (socket, data) => {
@@ -68,6 +70,7 @@ export const leaveRoom = (socket) => {
         size: getRoom(socket?.roomId)?.size
     }))
     delete socket.roomId
+    console.log(Rooms)
 }
 
 export const getRoom = (roomId) => {
@@ -94,4 +97,5 @@ export const deleteRoom = (roomId) => {
         delete socket?.pptId
     }
     Rooms.delete(roomId)
+    console.log(Rooms)
 }
